@@ -1,0 +1,137 @@
+/**
+ * 饿汉式[可用]
+ * 优点：从它的实现中我们可以看到，这种方式的实现比较简单，在JVM类加载的时候就完成了实例化，避免了线程的同步问题。
+ * 缺点：由于在类加载的时候就实例化了（when the class is loaded），所以没有达到Lazy Loading(懒加载)的效果，也就是说可能我没有用到这个实例，但是它
+ * 也会加载，会造成内存的浪费(但是这个浪费可以忽略，所以这种方式也是推荐使用的)。
+ */
+public class Singleton {
+	
+	private static Singleton instance = new Singleton();
+	
+	private Singleton() {}
+	
+	public static Singleton getInstance() {
+		return instance;
+	}
+}
+// 与上一个方法，基本没有区别
+public class Singleton {
+	
+	private static Singleton instance;
+	
+	static {
+		instance = new Singleton();
+	}
+	
+	private Singleton() {}
+	
+	public static Singleton getInstance() {
+		return instance;
+	}
+}
+
+/**
+ * 懒汉式
+ */
+// lazy loading，但是线程不安全 [不可用]
+public class Singleton {
+	private static Singleton instance;
+
+	private Singleton() {}
+	
+	public static Singleton getInstance() {
+		if(instance == null) {
+			instance = new Singleton();
+		}
+		return instance;
+	}
+}
+
+// 虽然加了锁，但还是线程不安全，理由同上 [不可用]
+public class Singleton {
+	private static Singleton instance;
+
+	private Singleton() {}
+	
+	public static Singleton getInstance() {
+		if(instance == null) {
+			// Lock on the Singleton Class
+			synchronized(Singleton.class){
+				instance = new Singleton();
+			}
+		}
+		return instance;
+	}
+}
+
+/**
+ * 优点：线程安全
+ * 缺点: getInstance这个方法需要同步, 效率太低。[可用，但效率太低，不推荐使用]
+ */
+public class Singleton {
+	private static Singleton instance;
+
+	private Singleton() {}
+	// Lock on the Singleton Class
+	public static synchronized Singleton getInstance() {
+		if(instance == null) {
+			instance = new Singleton();
+		}
+		return instance;
+	}
+}
+
+/**
+ * 双重校验锁
+ * 延迟加载，线程安全，还保障了效率。[推荐用]
+ */
+public class Singleton {
+	private static Singleton instance;
+
+	private Singleton() {}
+	
+	public static Singleton getInstance() {
+		// 多线程可以同时进入，保障效率
+		if(instance == null) {
+			synchronized(Singleton.class) {
+				// 双重校验，有保障了线程安全
+				if(instance == null) {
+					instance = new Singleton();
+				}
+			}
+		}
+		return instance;
+	}
+}
+
+/**
+ * 静态内部类
+ * 延迟加载，线程安全，效率高 [推荐用]
+ * 机制： 只有在调用getInstance方法时，内部类才会被装载，实例化Singleton instance。静态属性在第一次类加载初始化时，JVM会保证线程的安全性,没有同步问题。
+ */
+public class Singleton {	
+	
+	private Singleton() {}
+	
+	private static class SingletonHolder{
+		private static Singleton instance = new Singleton();
+	}
+	
+	public static Singleton getInstance() {
+		return SingletonHolder.instance;
+	}
+}
+
+/**
+ * 枚举 [推荐用]
+ * instance即Singleton类型的引用，所以得到它就可以用枚举中的方法了。 JDK1.5中的枚举来实现单列模式。
+ */
+public enum Singleton {	
+	instance;
+	
+	private Singleton() {}
+	
+	public void whateverMethod() {}
+	
+	// Singleton.instance.whateverMethod
+}
